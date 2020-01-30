@@ -2,8 +2,9 @@ from datetime import datetime
 
 
 class Logger:
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=False, no_status=False):
         self.verbose = verbose
+        self.no_status = no_status
 
     def ruler(self):
         print('===============================================================', flush=True)
@@ -23,7 +24,8 @@ class Logger:
             f'[+] User Agent   : {user_agent}\n'
             f'[+] Timeout      : {timeout}s\n'
             f'{"[+] Verbose      : True" + newline if self.verbose else ""}'
-            f'==============================================================='
+            f'===============================================================',
+            flush=True
         )
 
     def timestamped_line(self, content):
@@ -32,6 +34,14 @@ class Logger:
     def response_line(self, response):
         path = response.url.split("/")[-1]
         if self.verbose:
-            print(f'{"Found" if response.is_valid else "Missed"}: /{path} (Status: {response.status})', flush=True)
+            print(
+                f'{"Found" if response.is_valid else "Missed"}: /{path} '
+                f'{"(Status: " + str(response.status) + ")" if not self.no_status else ""}',
+                flush=True
+            )
         elif response.is_valid:
-            print(f'/{path} (Status: {response.status})', flush=True)
+            print(
+                f'/{path} '
+                f'{"(Status: " + str(response.status) + ")" if not self.no_status else ""}',
+                flush=True
+            )
