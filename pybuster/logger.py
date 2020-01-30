@@ -2,10 +2,11 @@ from datetime import datetime
 
 
 class Logger:
-    def __init__(self, verbose=False, no_status=False, quiet=False):
+    def __init__(self, verbose=False, no_status=False, quiet=False, expanded=False):
         self.verbose = verbose
         self.no_status = no_status
         self.quiet = quiet
+        self.expanded = expanded
 
     def ruler(self):
         if self.quiet:
@@ -39,16 +40,20 @@ class Logger:
         print(f'{datetime.now().strftime("%Y/%m/%d %H:%M:%S")} {content}', flush=True)
 
     def response_line(self, response):
-        path = response.url.split("/")[-1]
+        if self.expanded:
+            path = response.url
+        else:
+            path = '/' + response.url.split('/')[-1]
+
         if self.verbose:
             print(
-                f'{"Found" if response.is_valid else "Missed"}: /{path} '
+                f'{"Found" if response.is_valid else "Missed"}: {path} '
                 f'{"(Status: " + str(response.status) + ")" if not self.no_status else ""}',
                 flush=True
             )
         elif response.is_valid:
             print(
-                f'/{path} '
+                f'{path} '
                 f'{"(Status: " + str(response.status) + ")" if not self.no_status else ""}',
                 flush=True
             )
