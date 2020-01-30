@@ -56,6 +56,7 @@ def main():
     parser.add_argument('-a', '--useragent', type=str, default='pybuster/0.1', help='The User-Agent string to be used')
     parser.add_argument('-r', '--followredirect', action='store_true', help='Follow redirects')
     parser.add_argument('-H', '--headers', action='append', default=None, help='Specify HTTP headers, -H \'Header1: val1\' -H \'Header2: val2\'')
+    parser.add_argument('-c', '--cookies', action='append', default=None, help='Specify cookies to use, -c \'COOKIE=val1\' -c \'COOKIE2=val2\'')
     parser.add_argument('-t', '--threads', type=int, default=10, help='Number of concurrent threads')
     parser.add_argument('-o', '--output', type=str, help='Output file to write results to')
     parser.add_argument('-e', '--expanded', action='store_true', help='Expanded mode, print full URLs')
@@ -84,7 +85,13 @@ def main():
     )
 
     # Initialise client
-    client = Client(positive_codes, user_agent=user_agent, follow_redirect=args.followredirect, headers=args.headers)
+    client = Client(
+        positive_codes,
+        user_agent=user_agent,
+        follow_redirect=args.followredirect,
+        headers=args.headers,
+        cookies=args.cookies
+    )
 
     # Check that we can access the base URL before starting
     initial_response = client.check_url(base_url)

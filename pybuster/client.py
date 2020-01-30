@@ -1,3 +1,4 @@
+import sys
 import requests
 
 
@@ -10,10 +11,11 @@ class Response:
 
 
 class Client:
-    def __init__(self, positive_status_codes, user_agent='Pybuster/0.1', follow_redirect=False, headers=None):
+    def __init__(self, positive_status_codes, user_agent='Pybuster/0.1', follow_redirect=False, headers=None, cookies=None):
         self.positive_status_codes = positive_status_codes
         self.follow_redirect = follow_redirect
-        self.headers = self.generate_headers(headers, user_agent)
+        self.headers = self.parse_headers(headers, user_agent)
+        self.cookies = self.parse_cookies(cookies)
 
     def check_url(self, url):
         """
@@ -21,7 +23,7 @@ class Client:
         """
         response = Response(url)
         try:
-            res = requests.get(url, headers=self.headers, allow_redirects=self.follow_redirect)
+            res = requests.get(url, headers=self.headers, cookies=self.cookies, allow_redirects=self.follow_redirect)
 
             response.status = res.status_code
             if response.status in self.positive_status_codes:
@@ -34,13 +36,27 @@ class Client:
 
         return response
 
-    def generate_headers(self, headers, user_agent):
+    def parse_headers(self, headers, user_agent):
         """
         Generate header dict from a list of strings
         """
         if headers is not None:
-            result = {header.split(':')[0].strip():header.split(':')[1].strip() for header in headers}
+            try:
+                result = {header.split(':')[0].strip():header.split(':')[1].strip() for header in headers}
+            except Exception:
+                print(f'Invalid headers {str(headers)}')
+                sys.exit(1)
             result['User-Agent'] = user_agent
             return result
         else:
             return {'User-Agent': user_agent}
+
+    def parse_cookies(self, cookies):
+        if cookies is not None:
+            try:
+                return {cookie.split('=')[0].strip():cookie.split('=')[1].strip() for cookie in cookies}
+            except Exception:
+                print(f'Invalid cookies {str(cookies)}')
+                sys.exit(1)
+        else:
+            return {}
