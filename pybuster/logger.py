@@ -1,13 +1,20 @@
+import sys
 from datetime import datetime
 
 
 class Logger:
-    def __init__(self, verbose=False, no_status=False, quiet=False, expanded=False, include_length=False):
+    def __init__(self, verbose=False, no_status=False, quiet=False, expanded=False, include_length=False, output_file=None):
         self.verbose = verbose
         self.no_status = no_status
         self.quiet = quiet
         self.expanded = expanded
         self.include_length = include_length
+        try:
+            if output_file is not None:
+                sys.stdout = open(output_file, 'w')
+        except PermissionError:
+            print(f'ERROR: Permission denied for output file "{output_file}"')
+            sys.exit(1)
 
     def ruler(self):
         if self.quiet:
