@@ -4,7 +4,7 @@ import argparse
 import queue
 import requests
 from threading import Thread
-from output import generate_banner, generate_timestamped_line, generate_ruler, generate_url_line
+from logger import Logger
 
 
 class Response:
@@ -48,7 +48,7 @@ def build_url_queue(wordlist_path):
     return q
 
 
-def work(q, base_url, positive_codes):
+def work(q, base_url, positive_codes, logger):
     """
     Thread worker function, processes entries from URL queue until empty
     """
@@ -57,8 +57,7 @@ def work(q, base_url, positive_codes):
         url = base_url + '/' + word
 
         response = check_url(url, positive_codes)
-        if response.is_valid:
-            print(generate_url_line(url, response.status))
+        logger.response_line(response)
 
         q.task_done()
 
@@ -73,6 +72,7 @@ def main():
     parser.add_argument('-s', '--statuscodes', type=str, default='200,204,301,302,307,401,403', help='Positive status codes')
     parser.add_argument('-a', '--useragent', type=str, default='pybuster/0.1', help='The User-Agent string to be used')
     parser.add_argument('-t', '--threads', type=int, default=10, help='Number of concurrent threads')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Verbose output')
     parser.add_argument('--timeout', type=int, default=10, help='HTTP request timeout in seconds')
     args = parser.parse_args()
 
@@ -81,25 +81,29 @@ def main():
     positive_codes = [int(x) for x in args.statuscodes.split(',')]
     user_agent = args.useragent
     threads = args.threads
+    verbose = args.verbose
     timeout = args.timeout
+
+    # Initialise logger
+    logger = Logger(verbose=verbose)
 
     # Check that we can access the base URL before starting
     initial_response = check_url(base_url, positive_codes)
     if initial_response.is_valid:
-        print(generate_banner(base_url, threads, wordlist_path, args.statuscodes, user_agent, timeout), flush=True)
-        print(generate_timestamped_line('Starting pybuster'), flush=True)
-        print(generate_ruler())
+        logger.banner(base_url, threads, wordlist_path, args.statuscodes, user_agent, timeout)
+        logger.timestamped_line('Starting pybuster')
+        logger.ruler()
 
         url_queue = build_url_queue(wordlist_path)
 
         for i in range(threads):
-            t = Thread(target=work, args=(url_queue, base_url, positive_codes))
+            t = Thread(target=work, args=(url_queue, base_url, positive_codes, logger,))
             t.start()
         url_queue.join()
 
-        print(generate_ruler())
-        print(generate_timestamped_line('Finished'))
-        print(generate_ruler())
+        logger.ruler()
+        logger.timestamped_line('Finished')
+        logger.ruler()
     else:
         sys.exit(1)
 
