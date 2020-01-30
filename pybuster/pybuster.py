@@ -7,17 +7,29 @@ from threading import Thread
 from output import generate_banner, generate_timestamped_line, generate_ruler, generate_url_line
 
 
+class Response:
+    def __init__(self, url):
+        self.url = url
+        self.status = None
+        self.is_valid = False
+
+
 def check_url(url, positive_codes):
     """
-    Check that the given URL exists and is accessible.
+    Check the given URL for a response, store and return metadata
     """
+    response = Response(url)
     try:
-        response = requests.head(url)
-        if response.status_code in positive_codes:
-            return True
+        res = requests.head(url)
+
+        response.status = res.status_code
+        if response.status in positive_codes:
+            response.is_valid = True
     except Exception as e:
         print(f'ERROR: Timeout or unexpected response from {url}')
-        return False
+        response.is_valid = False
+
+    return response
 
 
 def build_url_queue(wordlist_path):
@@ -36,7 +48,7 @@ def build_url_queue(wordlist_path):
     return q
 
 
-def work(q, base_url):
+def work(q, base_url, positive_codes):
     """
     Thread worker function, processes entries from URL queue until empty
     """
@@ -44,7 +56,10 @@ def work(q, base_url):
         word = q.get()
         url = base_url + '/' + word
 
-        print(generate_url_line(url, 200))
+        response = check_url(url, positive_codes)
+        if response.is_valid:
+            print(generate_url_line(url, response.status))
+
         q.task_done()
 
 
@@ -68,8 +83,9 @@ def main():
     threads = args.threads
     timeout = args.timeout
 
-    # Check that we can access the base URL
-    if check_url(base_url, positive_codes):
+    # Check that we can access the base URL before starting
+    initial_response = check_url(base_url, positive_codes)
+    if initial_response.is_valid:
         print(generate_banner(base_url, threads, wordlist_path, args.statuscodes, user_agent, timeout), flush=True)
         print(generate_timestamped_line('Starting pybuster'), flush=True)
         print(generate_ruler())
@@ -77,7 +93,7 @@ def main():
         url_queue = build_url_queue(wordlist_path)
 
         for i in range(threads):
-            t = Thread(target=work, args=(url_queue, base_url,))
+            t = Thread(target=work, args=(url_queue, base_url, positive_codes))
             t.start()
         url_queue.join()
 
