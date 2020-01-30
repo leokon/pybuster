@@ -2,11 +2,12 @@ from datetime import datetime
 
 
 class Logger:
-    def __init__(self, verbose=False, no_status=False, quiet=False, expanded=False):
+    def __init__(self, verbose=False, no_status=False, quiet=False, expanded=False, include_length=False):
         self.verbose = verbose
         self.no_status = no_status
         self.quiet = quiet
         self.expanded = expanded
+        self.include_length = include_length
 
     def ruler(self):
         if self.quiet:
@@ -29,6 +30,9 @@ class Logger:
             f'[+] Status codes : {codes}\n'
             f'[+] User Agent   : {user_agent}\n'
             f'[+] Timeout      : {timeout}s\n'
+            f'{"[+] Expanded     : True" + newline if self.expanded else ""}'
+            f'{"[+] No status    : True" + newline if self.no_status else ""}'
+            f'{"[+] Quiet        : True" + newline if self.quiet else ""}'
             f'{"[+] Verbose      : True" + newline if self.verbose else ""}'
             f'===============================================================',
             flush=True
@@ -47,13 +51,15 @@ class Logger:
 
         if self.verbose:
             print(
-                f'{"Found" if response.is_valid else "Missed"}: {path} '
-                f'{"(Status: " + str(response.status) + ")" if not self.no_status else ""}',
+                f'{"Found" if response.is_valid else "Missed"}: {path}'
+                f'{" (Status: " + str(response.status) + ")" if not self.no_status else ""}'
+                f'{" [Size: " + str(response.length) + "]" if self.include_length else ""}',
                 flush=True
             )
         elif response.is_valid:
             print(
-                f'{path} '
-                f'{"(Status: " + str(response.status) + ")" if not self.no_status else ""}',
+                f'{path}'
+                f'{" (Status: " + str(response.status) + ")" if not self.no_status else ""}'
+                f'{" [Size: " + str(response.length) + "]" if self.include_length else ""}',
                 flush=True
             )

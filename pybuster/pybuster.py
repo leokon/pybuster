@@ -11,6 +11,7 @@ class Response:
     def __init__(self, url):
         self.url = url
         self.status = None
+        self.length = None
         self.is_valid = False
 
 
@@ -20,11 +21,13 @@ def check_url(url, positive_codes):
     """
     response = Response(url)
     try:
-        res = requests.head(url)
+        res = requests.get(url)
 
         response.status = res.status_code
         if response.status in positive_codes:
             response.is_valid = True
+
+        response.length = len(res.content)
     except Exception as e:
         print(f'ERROR: Timeout or unexpected response from {url}')
         response.is_valid = False
@@ -73,6 +76,7 @@ def main():
     parser.add_argument('-a', '--useragent', type=str, default='pybuster/0.1', help='The User-Agent string to be used')
     parser.add_argument('-t', '--threads', type=int, default=10, help='Number of concurrent threads')
     parser.add_argument('-e', '--expanded', action='store_true', help='Expanded mode, print full URLs')
+    parser.add_argument('-l', '--includelength', action='store_true', help='Include the length of the response body in the output')
     parser.add_argument('-n', '--nostatus', action='store_true', help='Don\'t print status codes')
     parser.add_argument('-q', '--quiet', action='store_true', help='Don\'t print anything but the results')
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose output')
@@ -87,7 +91,13 @@ def main():
     timeout = args.timeout
 
     # Initialise logger
-    logger = Logger(verbose=args.verbose, no_status=args.nostatus, quiet=args.quiet, expanded=args.expanded)
+    logger = Logger(
+        verbose=args.verbose,
+        no_status=args.nostatus,
+        quiet=args.quiet,
+        expanded=args.expanded,
+        include_length=args.includelength
+    )
 
     # Check that we can access the base URL before starting
     initial_response = check_url(base_url, positive_codes)
