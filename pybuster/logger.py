@@ -2,14 +2,19 @@ from datetime import datetime
 
 
 class Logger:
-    def __init__(self, verbose=False, no_status=False):
+    def __init__(self, verbose=False, no_status=False, quiet=False):
         self.verbose = verbose
         self.no_status = no_status
+        self.quiet = quiet
 
     def ruler(self):
+        if self.quiet:
+            return
         print('===============================================================', flush=True)
 
     def banner(self, url, threads, wordlist_path, codes, user_agent, timeout):
+        if self.quiet:
+            return
         newline = '\n'
         print(
             f'===============================================================\n'
@@ -29,6 +34,8 @@ class Logger:
         )
 
     def timestamped_line(self, content):
+        if self.quiet:
+            return
         print(f'{datetime.now().strftime("%Y/%m/%d %H:%M:%S")} {content}', flush=True)
 
     def response_line(self, response):

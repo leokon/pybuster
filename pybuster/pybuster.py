@@ -73,6 +73,7 @@ def main():
     parser.add_argument('-a', '--useragent', type=str, default='pybuster/0.1', help='The User-Agent string to be used')
     parser.add_argument('-t', '--threads', type=int, default=10, help='Number of concurrent threads')
     parser.add_argument('-n', '--nostatus', action='store_true', help='Don\'t print status codes')
+    parser.add_argument('-q', '--quiet', action='store_true', help='Don\'t print anything but the results')
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose output')
     parser.add_argument('--timeout', type=int, default=10, help='HTTP request timeout in seconds')
     args = parser.parse_args()
@@ -85,7 +86,7 @@ def main():
     timeout = args.timeout
 
     # Initialise logger
-    logger = Logger(verbose=args.verbose, no_status=args.nostatus)
+    logger = Logger(verbose=args.verbose, no_status=args.nostatus, quiet=args.quiet)
 
     # Check that we can access the base URL before starting
     initial_response = check_url(base_url, positive_codes)
