@@ -2,37 +2,31 @@
 import sys
 import argparse
 import queue
-import requests
 from threading import Thread
 from logger import Logger
+from client import Client
 
 
-class Response:
-    def __init__(self, url):
-        self.url = url
-        self.status = None
-        self.length = None
-        self.is_valid = False
+class WorkerThread(Thread):
+    def __init__(self, q, base_url, client, logger):
+        Thread.__init__(self)
+        self.q = q
+        self.base_url = base_url
+        self.client = client
+        self.logger = logger
 
+    def run(self):
+        """
+        Processes entries from URL queue until empty
+        """
+        while not self.q.empty():
+            word = self.q.get()
+            url = self.base_url + '/' + word
 
-def check_url(url, positive_codes):
-    """
-    Check the given URL for a response, store and return metadata
-    """
-    response = Response(url)
-    try:
-        res = requests.get(url)
+            response = self.client.check_url(url)
+            self.logger.response_line(response)
 
-        response.status = res.status_code
-        if response.status in positive_codes:
-            response.is_valid = True
-
-        response.length = len(res.content)
-    except Exception as e:
-        print(f'ERROR: Timeout or unexpected response from {url}')
-        response.is_valid = False
-
-    return response
+            self.q.task_done()
 
 
 def build_url_queue(wordlist_path):
@@ -49,20 +43,6 @@ def build_url_queue(wordlist_path):
         sys.exit(1)
 
     return q
-
-
-def work(q, base_url, positive_codes, logger):
-    """
-    Thread worker function, processes entries from URL queue until empty
-    """
-    while not q.empty():
-        word = q.get()
-        url = base_url + '/' + word
-
-        response = check_url(url, positive_codes)
-        logger.response_line(response)
-
-        q.task_done()
 
 
 def main():
@@ -101,8 +81,11 @@ def main():
         output_file=args.output
     )
 
+    # Initialise client
+    client = Client(positive_codes)
+
     # Check that we can access the base URL before starting
-    initial_response = check_url(base_url, positive_codes)
+    initial_response = client.check_url(base_url)
     if initial_response.is_valid:
         logger.banner(base_url, threads, wordlist_path, args.statuscodes, user_agent, timeout)
         logger.timestamped_line('Starting pybuster')
@@ -111,8 +94,8 @@ def main():
         url_queue = build_url_queue(wordlist_path)
 
         for i in range(threads):
-            t = Thread(target=work, args=(url_queue, base_url, positive_codes, logger,))
-            t.start()
+            worker = WorkerThread(url_queue, base_url, client, logger)
+            worker.start()
         url_queue.join()
 
         logger.ruler()
