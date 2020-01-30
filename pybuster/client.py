@@ -1,5 +1,6 @@
 import sys
 import requests
+from requests.auth import HTTPBasicAuth
 
 
 class Response:
@@ -11,11 +12,14 @@ class Response:
 
 
 class Client:
-    def __init__(self, positive_status_codes, user_agent='Pybuster/0.1', follow_redirect=False, headers=None, cookies=None):
+    def __init__(self, positive_status_codes, user_agent='Pybuster/0.1', follow_redirect=False, headers=None, cookies=None, insecure_ssl=False, username=None, password=None):
         self.positive_status_codes = positive_status_codes
         self.follow_redirect = follow_redirect
         self.headers = self.parse_headers(headers, user_agent)
         self.cookies = self.parse_cookies(cookies)
+        self.insecure_ssl = insecure_ssl
+        self.username = username
+        self.password = password
 
     def check_url(self, url):
         """
@@ -23,7 +27,12 @@ class Client:
         """
         response = Response(url)
         try:
-            res = requests.get(url, headers=self.headers, cookies=self.cookies, allow_redirects=self.follow_redirect)
+            if self.username is not None and self.password is not None:
+                auth = HTTPBasicAuth(self.username, self.password)
+            else:
+                auth = None
+
+            res = requests.get(url, headers=self.headers, cookies=self.cookies, allow_redirects=self.follow_redirect, auth=auth, verify=self.insecure_ssl)
 
             response.status = res.status_code
             if response.status in self.positive_status_codes:
