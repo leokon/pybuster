@@ -92,6 +92,7 @@ def main():
         positive_codes,
         user_agent=user_agent,
         follow_redirect=args.followredirect,
+        timeout=timeout,
         headers=args.headers,
         cookies=args.cookies,
         insecure_ssl=args.insecuressl,

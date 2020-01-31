@@ -12,8 +12,10 @@ class Response:
 
 
 class Client:
-    def __init__(self, positive_status_codes, user_agent='Pybuster/0.1', follow_redirect=False, headers=None, cookies=None, insecure_ssl=False, username=None, password=None):
+    def __init__(self, positive_status_codes, user_agent='Pybuster/0.1', timeout=10, follow_redirect=False,
+                 headers=None, cookies=None, insecure_ssl=False, username=None, password=None):
         self.positive_status_codes = positive_status_codes
+        self.timeout = timeout
         self.follow_redirect = follow_redirect
         self.headers = self.parse_headers(headers, user_agent)
         self.cookies = self.parse_cookies(cookies)
@@ -32,13 +34,24 @@ class Client:
             else:
                 auth = None
 
-            res = requests.get(url, headers=self.headers, cookies=self.cookies, allow_redirects=self.follow_redirect, auth=auth, verify=self.insecure_ssl)
+            res = requests.get(
+                url,
+                timeout=self.timeout,
+                headers=self.headers,
+                cookies=self.cookies,
+                allow_redirects=self.follow_redirect,
+                auth=auth,
+                verify=self.insecure_ssl
+            )
 
             response.status = res.status_code
             if response.status in self.positive_status_codes:
                 response.is_valid = True
 
             response.length = len(res.content)
+        except requests.exceptions.Timeout:
+            print(f'ERROR: Request to {url} timed out.')
+            response.is_valid = False
         except Exception as e:
             print(f'ERROR: Timeout or unexpected response from {url}')
             response.is_valid = False
