@@ -29,14 +29,14 @@ class WorkerThread(Thread):
             self.q.task_done()
 
 
-def build_url_queue(wordlist_path):
+def build_url_queue(wordlist_path, extension='', add_slash=False):
     """
     Instantiates and populates the thread-friendly queue of URLs to be tested from the given wordlist filepath
     """
     q = queue.Queue(maxsize=0)
     try:
         with open(wordlist_path) as f:
-            wordlist_lines = [line.strip() for line in f]
+            wordlist_lines = [(line.strip() + extension + '/') if add_slash is True else (line.strip() + extension) for line in f]
             [q.put(x) for x in wordlist_lines]
     except FileNotFoundError:
         print(f'ERROR: Wordlist file "{wordlist_path}" does not exist.')
@@ -60,6 +60,8 @@ def main():
     parser.add_argument('-U', '--username', type=str, help='Username for HTTP auth')
     parser.add_argument('-P', '--password', type=str, help='Password for HTTP auth')
     parser.add_argument('-k', '--insecuressl', action='store_true', help='Skip SSL certificate verification')
+    parser.add_argument('-f', '--addslash', action='store_true', help='Append / to each request')
+    parser.add_argument('-x', '--extension', type=str, default='', help='File extension to search for')
     parser.add_argument('-t', '--threads', type=int, default=10, help='Number of concurrent threads')
     parser.add_argument('-o', '--output', type=str, help='Output file to write results to')
     parser.add_argument('-e', '--expanded', action='store_true', help='Expanded mode, print full URLs')
@@ -73,6 +75,8 @@ def main():
     base_url = args.url.rstrip('/')
     wordlist_path = args.wordlist
     positive_codes = [int(x) for x in args.statuscodes.split(',')]
+    extension = args.extension
+    add_slash = args.addslash
     user_agent = args.useragent
     threads = args.threads
     timeout = args.timeout
@@ -107,7 +111,7 @@ def main():
         logger.timestamped_line('Starting pybuster')
         logger.ruler()
 
-        url_queue = build_url_queue(wordlist_path)
+        url_queue = build_url_queue(wordlist_path, extension=extension, add_slash=add_slash)
 
         for i in range(threads):
             worker = WorkerThread(url_queue, base_url, client, logger)

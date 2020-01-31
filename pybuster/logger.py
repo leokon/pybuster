@@ -54,7 +54,10 @@ class Logger:
         if self.expanded:
             path = response.url
         else:
-            path = '/' + response.url.split('/')[-1]
+            if response.url[-1] == '/':
+                path = '/' + response.url[:-1].split('/')[-1] + '/'
+            else:
+                path = '/' + response.url.split('/')[-1]
 
         if self.verbose:
             print(
