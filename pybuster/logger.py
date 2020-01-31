@@ -1,5 +1,6 @@
 import sys
 from datetime import datetime
+from tqdm import tqdm
 
 
 class Logger:
@@ -20,13 +21,13 @@ class Logger:
     def ruler(self):
         if self.quiet:
             return
-        print('===============================================================', flush=True)
+        tqdm.write('===============================================================')
 
     def banner(self, url, threads, wordlist_path, codes, user_agent, timeout):
         if self.quiet:
             return
         newline = '\n'
-        print(
+        tqdm.write(
             f'===============================================================\n'
             f'Pybuster v0.1.0\n'
             f'by Leo Kontogiorgis (leo@konto.dev)\n'
@@ -42,19 +43,18 @@ class Logger:
             f'{"[+] No status    : True" + newline if self.no_status else ""}'
             f'{"[+] Quiet        : True" + newline if self.quiet else ""}'
             f'{"[+] Verbose      : True" + newline if self.verbose else ""}'
-            f'===============================================================',
-            flush=True
+            f'==============================================================='
         )
 
     def timestamped_line(self, content):
         if self.quiet:
             return
-        print(f'{datetime.now().strftime("%Y/%m/%d %H:%M:%S")} {content}', flush=True)
+        tqdm.write(f'{datetime.now().strftime("%Y/%m/%d %H:%M:%S")} {content}')
 
     def info_line(self, content):
         if self.quiet:
             return
-        print(f'[-] {content}', flush=True)
+        tqdm.write(f'[-] {content}')
 
     def response_line(self, response):
         if self.expanded:
@@ -66,16 +66,14 @@ class Logger:
                 path = '/' + response.url.split('/')[-1]
 
         if self.verbose:
-            print(
+            tqdm.write(
                 f'{"Found" if response.is_valid else "Missed"}: {path}'
                 f'{" (Status: " + str(response.status) + ")" if not self.no_status else ""}'
-                f'{" [Size: " + str(response.length) + "]" if self.include_length else ""}',
-                flush=True
+                f'{" [Size: " + str(response.length) + "]" if self.include_length else ""}'
             )
         elif response.is_valid:
-            print(
+            tqdm.write(
                 f'{path}'
                 f'{" (Status: " + str(response.status) + ")" if not self.no_status else ""}'
-                f'{" [Size: " + str(response.length) + "]" if self.include_length else ""}',
-                flush=True
+                f'{" [Size: " + str(response.length) + "]" if self.include_length else ""}'
             )

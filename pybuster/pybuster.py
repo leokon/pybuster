@@ -3,6 +3,7 @@ import sys
 import argparse
 import queue
 import uuid
+import tqdm
 from threading import Thread
 try:
     from logger import Logger
@@ -11,13 +12,15 @@ except ModuleNotFoundError:
     from .logger import Logger
     from .client import Client
 
+
 class WorkerThread(Thread):
-    def __init__(self, q, base_url, client, logger):
+    def __init__(self, q, base_url, client, logger, progress_bar):
         Thread.__init__(self)
         self.q = q
         self.base_url = base_url
         self.client = client
         self.logger = logger
+        self.progress_bar = progress_bar
 
     def run(self):
         """
@@ -30,6 +33,7 @@ class WorkerThread(Thread):
             response = self.client.check_url(url)
             self.logger.response_line(response)
 
+            self.progress_bar.update(1)
             self.q.task_done()
 
 
@@ -122,11 +126,13 @@ def main():
         logger.ruler()
 
         url_queue = build_url_queue(wordlist_path, extension=extension, add_slash=add_slash)
+        pbar = tqdm.tqdm(total=url_queue.qsize(), ncols=63, leave=False)
 
         for i in range(threads):
-            worker = WorkerThread(url_queue, base_url, client, logger)
+            worker = WorkerThread(url_queue, base_url, client, logger, pbar)
             worker.start()
         url_queue.join()
+        pbar.close()
 
         logger.ruler()
         logger.timestamped_line('Finished')
