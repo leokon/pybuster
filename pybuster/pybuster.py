@@ -60,6 +60,7 @@ def main():
     parser.add_argument('-c', '--cookies', action='append', default=None, help='Specify cookies to use, -c \'COOKIE=val1\' -c \'COOKIE2=val2\'')
     parser.add_argument('-U', '--username', type=str, help='Username for HTTP auth')
     parser.add_argument('-P', '--password', type=str, help='Password for HTTP auth')
+    parser.add_argument('-p', '--proxy', type=str, default=None, help='Proxy to use for requests [http(s)://host:port]')
     parser.add_argument('-k', '--insecuressl', action='store_true', help='Skip SSL certificate verification')
     parser.add_argument('-f', '--addslash', action='store_true', help='Append / to each request')
     parser.add_argument('-x', '--extension', type=str, default='', help='File extension to search for')
@@ -101,6 +102,7 @@ def main():
         timeout=timeout,
         headers=args.headers,
         cookies=args.cookies,
+        proxy=args.proxy,
         insecure_ssl=args.insecuressl,
         username=args.username,
         password=args.password

@@ -13,12 +13,13 @@ class Response:
 
 class Client:
     def __init__(self, positive_status_codes, user_agent='Pybuster/0.1', timeout=10, follow_redirect=False,
-                 headers=None, cookies=None, insecure_ssl=False, username=None, password=None):
+                 headers=None, cookies=None, proxy=None, insecure_ssl=False, username=None, password=None):
         self.positive_status_codes = positive_status_codes
         self.timeout = timeout
         self.follow_redirect = follow_redirect
         self.headers = self.parse_headers(headers, user_agent)
         self.cookies = self.parse_cookies(cookies)
+        self.proxy = {'http': proxy, 'https': proxy} if proxy is not None else None
         self.insecure_ssl = insecure_ssl
         self.username = username
         self.password = password
@@ -40,6 +41,7 @@ class Client:
                 headers=self.headers,
                 cookies=self.cookies,
                 allow_redirects=self.follow_redirect,
+                proxies=self.proxy,
                 auth=auth,
                 verify=self.insecure_ssl
             )
