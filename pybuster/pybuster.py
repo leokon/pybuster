@@ -2,6 +2,7 @@
 import sys
 import argparse
 import queue
+import uuid
 from threading import Thread
 from logger import Logger
 from client import Client
@@ -69,6 +70,7 @@ def main():
     parser.add_argument('-n', '--nostatus', action='store_true', help='Don\'t print status codes')
     parser.add_argument('-q', '--quiet', action='store_true', help='Don\'t print anything but the results')
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose output')
+    parser.add_argument('--ignorewildcard', action='store_true', help='Continue operation as normal when wildcard returns a positive status code')
     parser.add_argument('--timeout', type=int, default=10, help='HTTP request timeout in seconds')
     args = parser.parse_args()
 
@@ -104,10 +106,12 @@ def main():
         password=args.password
     )
 
-    # Check that we can access the base URL before starting
-    initial_response = client.check_url(base_url)
-    if initial_response.is_valid:
-        logger.banner(base_url, threads, wordlist_path, args.statuscodes, user_agent, timeout)
+    logger.banner(base_url, threads, wordlist_path, args.statuscodes, user_agent, timeout)
+
+    # Run wildcard response check before starting
+    wildcard_url = base_url + '/' + str(uuid.uuid4())
+    wildcard_response = client.check_url(wildcard_url)
+    if not wildcard_response.is_valid or args.ignorewildcard:
         logger.timestamped_line('Starting pybuster')
         logger.ruler()
 
@@ -122,6 +126,8 @@ def main():
         logger.timestamped_line('Finished')
         logger.ruler()
     else:
+        logger.info_line(f'Wildcard response found: {wildcard_url} => {wildcard_response.status}')
+        logger.info_line(f'To ignore and continue anyway, specify the \'--ignorewildcard\' switch.')
         sys.exit(1)
 
 

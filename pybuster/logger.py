@@ -50,6 +50,11 @@ class Logger:
             return
         print(f'{datetime.now().strftime("%Y/%m/%d %H:%M:%S")} {content}', flush=True)
 
+    def info_line(self, content):
+        if self.quiet:
+            return
+        print(f'[-] {content}', flush=True)
+
     def response_line(self, response):
         if self.expanded:
             path = response.url
