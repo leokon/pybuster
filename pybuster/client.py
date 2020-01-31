@@ -43,7 +43,7 @@ class Client:
                 allow_redirects=self.follow_redirect,
                 proxies=self.proxy,
                 auth=auth,
-                verify=self.insecure_ssl
+                verify=(not self.insecure_ssl)
             )
 
             response.status = res.status_code

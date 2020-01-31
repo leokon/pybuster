@@ -4,9 +4,12 @@ import argparse
 import queue
 import uuid
 from threading import Thread
-from logger import Logger
-from client import Client
-
+try:
+    from logger import Logger
+    from client import Client
+except ModuleNotFoundError:
+    from .logger import Logger
+    from .client import Client
 
 class WorkerThread(Thread):
     def __init__(self, q, base_url, client, logger):
@@ -54,7 +57,7 @@ def main():
     parser.add_argument('-u', '--url', type=str, required=True, help='The target URL')
     parser.add_argument('-w', '--wordlist', type=str, required=True, help='Path to the wordlist')
     parser.add_argument('-s', '--statuscodes', type=str, default='200,204,301,302,307,401,403', help='Positive status codes')
-    parser.add_argument('-a', '--useragent', type=str, default='pybuster/0.1', help='The User-Agent string to be used')
+    parser.add_argument('-a', '--useragent', type=str, default='pybuster/0.1.0', help='The User-Agent string to be used')
     parser.add_argument('-r', '--followredirect', action='store_true', help='Follow redirects')
     parser.add_argument('-H', '--headers', action='append', default=None, help='Specify HTTP headers, -H \'Header1: val1\' -H \'Header2: val2\'')
     parser.add_argument('-c', '--cookies', action='append', default=None, help='Specify cookies to use, -c \'COOKIE=val1\' -c \'COOKIE2=val2\'')
@@ -62,7 +65,7 @@ def main():
     parser.add_argument('-P', '--password', type=str, help='Password for HTTP auth')
     parser.add_argument('-p', '--proxy', type=str, default=None, help='Proxy to use for requests [http(s)://host:port]')
     parser.add_argument('-k', '--insecuressl', action='store_true', help='Skip SSL certificate verification')
-    parser.add_argument('-f', '--addslash', action='store_true', help='Append / to each request')
+    parser.add_argument('-f', '--addslash', action='store_true', default=False, help='Append / to each request')
     parser.add_argument('-x', '--extension', type=str, default='', help='File extension to search for')
     parser.add_argument('-t', '--threads', type=int, default=10, help='Number of concurrent threads')
     parser.add_argument('-o', '--output', type=str, help='Output file to write results to')
@@ -91,7 +94,8 @@ def main():
         quiet=args.quiet,
         expanded=args.expanded,
         include_length=args.includelength,
-        output_file=args.output
+        output_file=args.output,
+        add_slash=add_slash
     )
 
     # Initialise client

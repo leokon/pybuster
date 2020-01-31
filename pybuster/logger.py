@@ -3,12 +3,13 @@ from datetime import datetime
 
 
 class Logger:
-    def __init__(self, verbose=False, no_status=False, quiet=False, expanded=False, include_length=False, output_file=None):
+    def __init__(self, verbose=False, no_status=False, quiet=False, expanded=False, include_length=False, output_file=None, add_slash=False):
         self.verbose = verbose
         self.no_status = no_status
         self.quiet = quiet
         self.expanded = expanded
         self.include_length = include_length
+        self.add_slash = add_slash
         try:
             if output_file is not None:
                 sys.stdout = open(output_file, 'w')
@@ -27,7 +28,7 @@ class Logger:
         newline = '\n'
         print(
             f'===============================================================\n'
-            f'Pybuster v0.1\n'
+            f'Pybuster v0.1.0\n'
             f'by Leo Kontogiorgis (leo@konto.dev)\n'
             f'===============================================================\n'
             f'[+] Mode         : dir\n'
@@ -59,7 +60,7 @@ class Logger:
         if self.expanded:
             path = response.url
         else:
-            if response.url[-1] == '/':
+            if self.add_slash:
                 path = '/' + response.url[:-1].split('/')[-1] + '/'
             else:
                 path = '/' + response.url.split('/')[-1]
