@@ -1,6 +1,10 @@
 # Pybuster
 
-Pybuster is a multithreaded brute-forcing tool for use with web URIs (directories and files). An extended reimplementation of dirbuster in Python3, with heavy inspiration taken from [gobuster](https://github.com/OJ/gobuster).
+Pybuster is a multi-threaded tool for brute-forcing paths on web servers.
+
+It is an  extended reimplementation of dirbuster/dirb in Python 3, with heavy inspiration taken from [gobuster](https://github.com/OJ/gobuster).
+
+![](demo.gif)
 
 ## Installation
 #### Using pip
@@ -121,3 +125,7 @@ Usage:
 --ignorewildcard      Continue operation as normal when wildcard returns a positive status code
 --timeout             HTTP request timeout in seconds (default: 10)
 ```
+
+## Planned features
+* Crawl pages looking for paths to add to the queue
+* "Grep mode", specify positive results based on a regex instead of a HTTP status code
