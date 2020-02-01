@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='pybuster',
-    version='0.1.0',
+    version='0.2.0',
     description='A multithreaded brute-forcing tool for use with web URIs',
     author='Leo Kontogiorgis',
     author_email='leo@konto.dev',
